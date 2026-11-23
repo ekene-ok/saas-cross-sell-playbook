@@ -9,7 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 RES, OUT = ROOT / "results", ROOT / "charts"
 OUT.mkdir(exist_ok=True)
 SURFACE, INK, INK2 = "#ffffff", "#1a1a1a", "#6b6a66"
-HIGHLIGHT, CONTEXT = "#2a78d6", "#d9d8d3"
+HIGHLIGHT, CONTEXT = "#14946a", "#d9d8d3"
 plt.rcParams.update({"font.family": "DejaVu Sans", "font.size": 11, "text.color": INK,
                      "figure.facecolor": SURFACE, "axes.facecolor": SURFACE})
 
