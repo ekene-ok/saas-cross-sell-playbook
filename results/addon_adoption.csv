@@ -1,0 +1,7 @@
+addon,adoption_rate,churn_with_addon,churn_without_addon,active_non_adopters
+Online Security,0.366,0.146,0.418,2037
+Tech Support,0.37,0.152,0.416,2027
+Online Backup,0.44,0.215,0.399,1855
+Device Protection,0.439,0.225,0.391,1884
+Streaming Movies,0.495,0.299,0.337,1847
+Streaming TV,0.491,0.301,0.335,1868

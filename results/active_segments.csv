@@ -1,0 +1,13 @@
+contract,tenure_band,active_customers,avg_protection_addons,share_with_no_protection,avg_monthly_charges
+Month-to-month,0 to 11 months,632,0.81,0.43,62.1
+Month-to-month,12 to 23 months,391,1.13,0.302,70.68
+Month-to-month,24 to 47 months,508,1.46,0.163,76.11
+Month-to-month,48+ months,264,1.78,0.098,84.1
+One year,0 to 11 months,31,1.77,0.097,56.84
+One year,12 to 23 months,86,1.76,0.093,66.58
+One year,24 to 47 months,334,2.07,0.057,73.16
+One year,48+ months,501,2.3,0.028,84.61
+Two year,0 to 11 months,17,2.94,0.0,58.66
+Two year,12 to 23 months,22,2.82,0.0,57.19
+Two year,24 to 47 months,106,2.58,0.009,75.1
+Two year,48+ months,869,3.03,0.006,86.13

@@ -1,0 +1,13 @@
+contract,tenure_band,active_customers,avg_churn_prob,tier1_targets,lead_motion,lead_offer
+Month-to-month,0 to 11 months,632,0.48,75,Streaming upsell,Streaming Movies
+Month-to-month,12 to 23 months,389,0.429,87,Streaming upsell,Streaming TV
+Month-to-month,24 to 47 months,507,0.334,140,Streaming upsell,Streaming Movies
+Month-to-month,48+ months,262,0.229,90,Protection cross-sell,Online Backup
+One year,0 to 11 months,31,0.228,7,Streaming upsell,Streaming Movies
+One year,12 to 23 months,86,0.197,18,Streaming upsell,Streaming TV
+One year,24 to 47 months,325,0.155,119,Streaming upsell,Streaming Movies
+One year,48+ months,479,0.109,205,Protection cross-sell,Device Protection
+Two year,0 to 11 months,16,0.103,7,Streaming upsell,Streaming TV
+Two year,12 to 23 months,20,0.074,9,Streaming upsell,Streaming Movies
+Two year,24 to 47 months,98,0.065,27,Protection cross-sell,Online Security
+Two year,48+ months,647,0.038,264,Protection cross-sell,Tech Support

@@ -1,0 +1,16 @@
+contract,protection_addons,customers,churn_rate
+Month-to-month,0,1203,0.585
+Month-to-month,1,1180,0.452
+Month-to-month,2,707,0.365
+Month-to-month,3,227,0.229
+Month-to-month,4,34,0.265
+One year,0,57,0.228
+One year,1,217,0.157
+One year,2,439,0.118
+One year,3,307,0.16
+One year,4,89,0.101
+Two year,0,7,0.143
+Two year,1,70,0.043
+Two year,2,226,0.071
+Two year,3,407,0.039
+Two year,4,347,0.02
