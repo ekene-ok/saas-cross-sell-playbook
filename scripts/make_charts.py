@@ -23,7 +23,7 @@ b.hbar(ax, [short.get(g, g) for g in c.churn_group], (c.share_of_churned_revenue
        {list(c.churn_group).index(target)}, lambda v: f"{v:.0f}%", HL)
 share = c.loc[c.churn_group == target, "customers"].iloc[0] / total_customers
 b.titles(fig, f"First-year fiber customers are {share:.0%} of the base but 37% of lost revenue",
-         "Share of churned revenue by customer group. Monthly means a month-to-month plan")
+         "Share of revenue lost when customers cancel, by group. Monthly means no contract")
 b.credit(fig, "IBM Telco Customer Churn sample, 5,517 internet customers")
 b.save(fig, OUT / "01_where_churned_revenue_comes_from.png")
 
@@ -35,10 +35,12 @@ contract = pd.read_csv(RES / "contract_offer_scenarios.csv").annual_net_value.ma
 fiber_lost = c.loc[c.churn_group == target, "revenue_churned"].iloc[0]
 vals = [fiber_lost / 1e3, upsell / 1e3, bundle / 1e3, contract / 1e3]
 fig, ax = b.chart(height=4.2, label_in=1.75)
-b.hbar(ax, ["Year-1 fiber churn", "Streaming upsell", "Protection bundle", "Contract discount"], vals, {0},
-       lambda v: f"-${abs(v):,.0f}K" if v < 0 else f"${v:,.0f}K", HL)
-b.titles(fig, "The offers on the table are tiny next to the churn problem",
-         "Annual value in dollars: revenue lost to churn against the best case for each offer")
+b.hbar(ax, ["Fiber cancellations", "Streaming add-on", "Protection bundle", "Contract discount"], vals, {0},
+       lambda v: f"-${abs(v):,.0f}K" if v < 0 else f"${v:,.0f}K", HL,
+       sublabels=["revenue lost, first-year customers", "best case for the offer", "best case for the offer",
+                  "best case for the offer"])
+b.titles(fig, "Keeping first-year fiber customers is worth 50 times the best upsell",
+         "Annual revenue at stake: lost to cancellations, against the most each sales offer could add")
 b.credit(fig, "IBM Telco Customer Churn sample; offer values use the planning assumptions in the README")
 b.save(fig, OUT / "02_offers_are_small.png")
 print("charts saved")

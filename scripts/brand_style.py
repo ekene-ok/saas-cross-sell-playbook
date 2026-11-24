@@ -8,6 +8,7 @@ Colours are validated with the dataviz palette checks (lightness band, chroma, c
 import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.ticker
+import matplotlib.transforms
 
 INK = "#14213d"        # navy: headlines, values, key labels
 MUTED = "#5f6470"      # deck, axis labels, source line (5.9:1 on white)
@@ -93,9 +94,9 @@ VALUE = 10.5                                         # value and category label 
 
 def chart(height=4.5, label_in=1.6, xaxis=False, right_in=0.55):
     """A figure with fixed margins. label_in is the room for category labels on the left;
-    xaxis reserves room for tick labels under the plot."""
+    xaxis reserves room under the plot: True for tick labels plus an axis title, "ticks" for tick labels only."""
     fig = plt.figure(figsize=(WIDTH, height), dpi=200)
-    bottom_in = 1.0 if xaxis else 0.55
+    bottom_in = 0.8 if xaxis == "ticks" else 1.0 if xaxis else 0.55
     left = (LEFT_IN + label_in) / WIDTH
     ax = fig.add_axes([left, bottom_in / height, 1 - left - right_in / WIDTH,
                        1 - (PLOT_TOP_IN + bottom_in) / height])
@@ -123,7 +124,23 @@ def save(fig, path):
     plt.close(fig)
 
 
-def hbar(ax, labels, values, highlight, fmt, color, xmax=None):
+def _row_labels(ax, ys, labels, highlight, sublabels=None):
+    """Category labels at the left of the plot, with an optional smaller second line that explains them."""
+    ax.set_yticks(ys)
+    if not sublabels:
+        ax.set_yticklabels(labels)
+        for i, t in enumerate(ax.get_yticklabels()):
+            t.set_color(INK if i in highlight else MUTED)
+        return
+    ax.set_yticklabels([""] * len(ys))
+    tr = matplotlib.transforms.blended_transform_factory(ax.transAxes, ax.transData)
+    for i, (y, lab, sub) in enumerate(zip(ys, labels, sublabels)):
+        ax.text(-0.02, y + 0.13, lab, transform=tr, ha="right", va="center", fontsize=VALUE,
+                color=INK if i in highlight else MUTED)
+        ax.text(-0.02, y - 0.2, sub, transform=tr, ha="right", va="center", fontsize=8.5, color=MUTED)
+
+
+def hbar(ax, labels, values, highlight, fmt, color, xmax=None, sublabels=None):
     """Horizontal bars, first item at the top. highlight: set of indexes drawn in the project colour."""
     n = len(values)
     ys = list(range(n))[::-1]
@@ -135,14 +152,11 @@ def hbar(ax, labels, values, highlight, fmt, color, xmax=None):
         ax.barh(y, v, height=0.62, color=c, linewidth=0)
         small_neg = v < 0 and abs(v) < span * 0.05   # label a tiny negative on the right, like the rest
         ha, x = ("left", max(v, 0) + span * 0.015) if v >= 0 or small_neg else ("right", v - span * 0.015)
-        ax.text(x, y, fmt(v), va="center", ha=ha, fontsize=VALUE, color=INK if i in highlight else MUTED)
-    ax.set_yticks(ys)
-    ax.set_yticklabels(labels)
-    for i, t in enumerate(ax.get_yticklabels()):
-        t.set_color(INK if i in highlight else MUTED)
+        ax.text(x, y, fmt[i] if isinstance(fmt, list) else fmt(v), va="center", ha=ha, fontsize=VALUE, color=INK if i in highlight else MUTED)
+    _row_labels(ax, ys, labels, highlight, sublabels)
     ax.set_ylim(-0.6, n - 0.4)
     big_neg = lo < -span * 0.05
-    ax.set_xlim(lo - span * 0.16 if big_neg else min(lo, 0), hi + span * 0.16)
+    ax.set_xlim(lo - span * 0.3 if big_neg else min(lo, 0), hi + span * 0.16)
     ax.set_xticks([])
     ax.axvline(0, color=HAIRLINE, linewidth=1)
     return ax
@@ -155,7 +169,7 @@ def vbar(ax, labels, values, highlight, fmt, color, ymax=None):
     for x, v, i in zip(xs, values, range(len(values))):
         c = color if i in highlight else CONTEXT
         ax.bar(x, v, width=0.62, color=c, linewidth=0)
-        ax.text(x, v + hi * 0.02, fmt(v), ha="center", va="bottom", fontsize=VALUE,
+        ax.text(x, v + hi * 0.02, fmt[i] if isinstance(fmt, list) else fmt(v), ha="center", va="bottom", fontsize=VALUE,
                 color=INK if i in highlight else MUTED)
     ax.set_xticks(list(xs))
     ax.set_xticklabels(labels)
@@ -167,7 +181,7 @@ def vbar(ax, labels, values, highlight, fmt, color, ymax=None):
     return ax
 
 
-def dotrange(ax, labels, est, lo, hi, highlight, fmt, color, xlim=None, zero=True):
+def dotrange(ax, labels, est, lo, hi, highlight, fmt, color, xlim=None, zero=True, sublabels=None):
     """Estimate with its interval: a dot on a range line, first item at the top."""
     n = len(est)
     ys = list(range(n))[::-1]
@@ -177,10 +191,7 @@ def dotrange(ax, labels, est, lo, hi, highlight, fmt, color, xlim=None, zero=Tru
         ax.scatter([e], [y], s=80, color=c, zorder=3, linewidths=0)
         ax.text(e, y + 0.26, fmt(e), ha="center", va="bottom", fontsize=VALUE,
                 color=INK if i in highlight else MUTED)
-    ax.set_yticks(ys)
-    ax.set_yticklabels(labels)
-    for i, t in enumerate(ax.get_yticklabels()):
-        t.set_color(INK if i in highlight else MUTED)
+    _row_labels(ax, ys, labels, highlight, sublabels)
     ax.set_ylim(-0.6, n - 0.2)
     if xlim:
         ax.set_xlim(*xlim)

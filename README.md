@@ -26,7 +26,7 @@ The business sells internet service plus six optional add-ons: four "protection"
 
 ![First-year fiber customers are 16% of the base but 37% of lost revenue](charts/01_where_churned_revenue_comes_from.png)
 
-![The offers on the table are tiny next to the churn problem](charts/02_offers_are_small.png)
+![Keeping first-year fiber customers is worth 50 times the best upsell](charts/02_offers_are_small.png)
 
 ## Results
 
