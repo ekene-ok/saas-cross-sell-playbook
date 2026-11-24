@@ -1,0 +1,6 @@
+measure,value
+Pilot group baseline churn risk,0.543
+Expected churn cut if the full link is causal (points),4.1
+Smallest cut a 272-customer pilot can detect (points),16.9
+Customers per arm needed to detect the full expected cut,2283.0
+Customers per arm needed if half the link is causal,9121.0

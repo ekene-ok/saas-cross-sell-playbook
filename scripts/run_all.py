@@ -199,3 +199,130 @@ print(nbo.groupby(["tier","motion"]).size())
 print(pd.DataFrame(pilot_rows).to_string(index=False))
 print(f"Tier 1 targets: {len(t1)} of {len(nbo)} active internet customers")
 print(seg.to_string(index=False))
+
+# 6. Size the churn prize -------------------------------------------------------------------
+# The dataset flags customers who left during the period it covers, so "lost" means revenue
+# that walked out in that period (monthly charges x 12).
+inet["annual_revenue"] = inet["monthly_charges"] * 12
+inet["no_protection"] = inet[PROTECTION].sum(axis=1) == 0
+lost = inet[inet["churned"]]
+active["no_protection"] = active[PROTECTION].sum(axis=1) == 0
+active["annual_revenue"] = active["monthly_charges"] * 12
+at_risk = active[active["no_protection"]]
+prize = pd.DataFrame([
+    {"measure": "ARR of active internet customers", "value": round(active["annual_revenue"].sum())},
+    {"measure": "Annual revenue that churned in the period (internet customers)", "value": round(lost["annual_revenue"].sum())},
+    {"measure": "  of which from customers with no protection add-ons", "value": round(lost.loc[lost["no_protection"], "annual_revenue"].sum())},
+    {"measure": "Active customers with no protection add-ons", "value": len(at_risk)},
+    {"measure": "  their ARR", "value": round(at_risk["annual_revenue"].sum())},
+    {"measure": "  their expected revenue lost to churn (predicted churn x revenue)", "value": round((at_risk["churn_prob"] * at_risk["annual_revenue"]).sum())},
+    {"measure": "Streaming upsell, Tier 1 base case (for comparison)", "value": round(fc["value_base"].sum())},
+])
+prize.to_csv(OUT / "churn_prize.csv", index=False)
+
+# Bundle scenarios for all active customers with no protection add-ons, at the same 10% base
+# take-up used for the upsell forecast. Value = $60 new revenue + revenue kept, where revenue
+# kept depends on how much of the churn link is causal (unknown until tested).
+eff = (at_risk["churn_prob"] - at_risk["churn_prob_plus_one"]) * at_risk["annual_revenue"]
+TAKE_UP = 0.10
+scen = []
+for c in (0.0, 0.25, 0.5, 1.0):
+    per_win = 60.24 + c * eff.mean()
+    scen.append({"causal_share_assumed": c, "customers_offered": len(at_risk), "take_up": TAKE_UP,
+                 "value_per_customer_won": round(per_win, 2),
+                 "annual_value": round(len(at_risk) * TAKE_UP * per_win)})
+scen = pd.DataFrame(scen)
+scen.to_csv(OUT / "bundle_scenarios.csv", index=False)
+
+# Can the planned pilot detect a realistic effect? Expected churn cut from one extra protection
+# add-on in the pilot group, and the sample needed to detect it (two-sided 5%, 80% power).
+p0 = pilot["churn_prob"].mean()
+d_full = (pilot["churn_prob"] - pilot["churn_prob_plus_one"]).mean()
+z = 1.96 + 0.84
+def n_per_arm(d):
+    p1 = p0 - d
+    return int(np.ceil(z ** 2 * (p0 * (1 - p0) + p1 * (1 - p1)) / d ** 2))
+mde = z * np.sqrt(2 * p0 * (1 - p0) / (len(pilot) / 2))
+power = pd.DataFrame([
+    {"measure": "Pilot group baseline churn risk", "value": round(p0, 3)},
+    {"measure": "Expected churn cut if the full link is causal (points)", "value": round(d_full * 100, 1)},
+    {"measure": "Smallest cut a 272-customer pilot can detect (points)", "value": round(mde * 100, 1)},
+    {"measure": "Customers per arm needed to detect the full expected cut", "value": n_per_arm(d_full)},
+    {"measure": "Customers per arm needed if half the link is causal", "value": n_per_arm(d_full / 2)},
+])
+power.to_csv(OUT / "pilot_power.csv", index=False)
+print("\n", prize.to_string(index=False)); print(scen.to_string(index=False)); print(power.to_string(index=False))
+
+# 7. The bigger lever: contract terms ---------------------------------------------------------
+# Churn by contract within tenure bands (so tenure is held roughly fixed)
+inet["tenure_band"] = pd.cut(inet["tenure_months"], [-1, 11, 23, 47, 100],
+                             labels=["0 to 11 months", "12 to 23 months", "24 to 47 months", "48+ months"])
+by_contract = (inet.groupby(["tenure_band", "contract"], observed=True)
+               .agg(customers=("customer_id", "size"), churn_rate=("churned", "mean"))
+               .round(3).reset_index())
+by_contract.to_csv(OUT / "churn_by_contract_and_tenure.csv", index=False)
+
+# Offer month-to-month customers a one-year contract at a 10% discount. Predicted churn cut comes
+# from the churn model (contract switched to one year, everything else unchanged). Observational,
+# so again shown at several causal shares. Discount cost = 10% of the customer's annual revenue.
+mtm = active[active["contract"] == "Month-to-month"].copy()
+Xm = features(mtm, drop=list(ADDONS)); Xm["protection_addons"] = mtm[PROTECTION].sum(axis=1)
+Xm = Xm.reindex(columns=Xc.columns, fill_value=0)
+Xm_1y = Xm.copy()
+if "contract_One year" in Xm_1y:
+    Xm_1y["contract_One year"] = 1
+if "contract_Two year" in Xm_1y:
+    Xm_1y["contract_Two year"] = 0
+mtm["churn_prob_1y"] = churn_model.predict_proba(Xm_1y)[:, 1]
+cut = (mtm["churn_prob"] - mtm["churn_prob_1y"])
+DISCOUNT, TAKE_UP_C = 0.10, 0.15
+crows = []
+for c in (0.25, 0.5, 1.0):
+    per_taker = (c * cut * mtm["annual_revenue"] - DISCOUNT * mtm["annual_revenue"]).mean()
+    crows.append({"causal_share_assumed": c, "customers_offered": len(mtm), "take_up": TAKE_UP_C,
+                  "churn_cut_points": round(c * cut.mean() * 100, 1),
+                  "net_value_per_taker": round(per_taker, 2),
+                  "annual_net_value": round(len(mtm) * TAKE_UP_C * per_taker)})
+contract_scen = pd.DataFrame(crows)
+contract_scen.to_csv(OUT / "contract_offer_scenarios.csv", index=False)
+
+p0m = mtm["churn_prob"].mean()
+def n_arm(p0, d):
+    p1 = p0 - d
+    return int(np.ceil(z ** 2 * (p0 * (1 - p0) + p1 * (1 - p1)) / d ** 2))
+# Customers offered per arm to detect the churn cut among those offered (diluted by take-up)
+contract_power = pd.DataFrame([{"causal_share_assumed": c,
+                                "churn_cut_among_takers_points": round(c * cut.mean() * 100, 1),
+                                "customers_offered_per_arm_needed": n_arm(p0m, c * cut.mean() * TAKE_UP_C)}
+                               for c in (0.5, 1.0)])
+contract_power.to_csv(OUT / "contract_test_power.csv", index=False)
+print(f"\nmonth-to-month active: {len(mtm)}, ARR {mtm['annual_revenue'].sum():,.0f}, expected churn loss {(mtm['churn_prob']*mtm['annual_revenue']).sum():,.0f}, mean churn prob {p0m:.3f}")
+print(by_contract.to_string(index=False)); print(contract_scen.to_string(index=False)); print(contract_power.to_string(index=False))
+
+# 8. Where churned revenue concentrates ---------------------------------------------------------
+def group(r):
+    if r["contract"] != "Month-to-month":
+        return "Annual or two-year contract"
+    if r["tenure_months"] < 12:
+        return f"First-year month-to-month, {'fiber' if r['internet_type'] == 'Fiber optic' else 'DSL'}"
+    return "Month-to-month, 12+ months"
+inet["churn_group"] = inet.apply(group, axis=1)
+conc = (inet.groupby("churn_group")
+        .agg(customers=("customer_id", "size"), churn_rate=("churned", "mean"),
+             revenue_churned=("annual_revenue", lambda s: s[inet.loc[s.index, "churned"]].sum()))
+        .sort_values("revenue_churned", ascending=False))
+conc["share_of_churned_revenue"] = conc["revenue_churned"] / conc["revenue_churned"].sum()
+conc = conc.round({"churn_rate": 3, "revenue_churned": 0, "share_of_churned_revenue": 3}).reset_index()
+conc.to_csv(OUT / "churned_revenue_by_group.csv", index=False)
+
+fy = inet[(inet["tenure_months"] < 12) & (inet["contract"] == "Month-to-month")]
+fy_detail = (fy.groupby(["internet_type", "payment_method"])
+             .agg(customers=("customer_id", "size"), churn_rate=("churned", "mean")).round(3).reset_index())
+fy_detail.to_csv(OUT / "first_year_churn_by_internet_and_payment.csv", index=False)
+
+# Test size for a first-year fiber retention test (detect a 10-point cut from the observed rate)
+p_fiber = fy.loc[fy["internet_type"] == "Fiber optic", "churned"].mean()
+fiber_test = pd.DataFrame([{"baseline_churn": round(p_fiber, 3), "cut_to_detect_points": 10,
+                            "customers_per_arm_needed": n_arm(p_fiber, 0.10)}])
+fiber_test.to_csv(OUT / "fiber_test_size.csv", index=False)
+print("\n", conc.to_string(index=False)); print(fiber_test.to_string(index=False))

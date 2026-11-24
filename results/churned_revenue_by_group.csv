@@ -1,0 +1,5 @@
+churn_group,customers,churn_rate,revenue_churned,share_of_churned_revenue
+"Month-to-month, 12+ months",1815,0.359,659150.0,0.401
+"First-year month-to-month, fiber",876,0.705,610794.0,0.372
+Annual or two-year contract,2166,0.092,215760.0,0.131
+"First-year month-to-month, DSL",660,0.433,156247.0,0.095

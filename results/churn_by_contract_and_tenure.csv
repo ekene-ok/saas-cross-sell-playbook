@@ -1,0 +1,13 @@
+tenure_band,contract,customers,churn_rate
+0 to 11 months,Month-to-month,1536,0.589
+0 to 11 months,One year,36,0.139
+0 to 11 months,Two year,17,0.0
+12 to 23 months,Month-to-month,670,0.416
+12 to 23 months,One year,105,0.181
+12 to 23 months,Two year,22,0.0
+24 to 47 months,Month-to-month,790,0.357
+24 to 47 months,One year,382,0.126
+24 to 47 months,Two year,109,0.028
+48+ months,Month-to-month,355,0.256
+48+ months,One year,586,0.145
+48+ months,Two year,909,0.044

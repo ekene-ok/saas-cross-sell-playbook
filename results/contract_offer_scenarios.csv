@@ -1,0 +1,4 @@
+causal_share_assumed,customers_offered,take_up,churn_cut_points,net_value_per_taker,annual_net_value
+0.25,1795,0.15,2.3,-65.02,-17507
+0.5,1795,0.15,4.7,-44.64,-12019
+1.0,1795,0.15,9.4,-3.88,-1044

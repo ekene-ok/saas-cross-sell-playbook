@@ -1,0 +1,9 @@
+internet_type,payment_method,customers,churn_rate
+DSL,Bank transfer (automatic),69,0.275
+DSL,Credit card (automatic),72,0.389
+DSL,Electronic check,273,0.513
+DSL,Mailed check,246,0.402
+Fiber optic,Bank transfer (automatic),79,0.81
+Fiber optic,Credit card (automatic),71,0.634
+Fiber optic,Electronic check,606,0.718
+Fiber optic,Mailed check,120,0.617
