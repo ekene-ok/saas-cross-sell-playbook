@@ -1,6 +1,38 @@
 # SaaS Cross-Sell Playbook: Is Cross-Sell Where the Revenue Is?
 
-A customer marketing analysis of 7,043 subscribers to a multi-product subscription business. Customer Marketing asked for a cross-sell plan. The analysis builds one, then checks whether it is the right lever, and finds that churn among new fiber customers matters far more than any offer on the table.
+**In one line:** I was asked for a plan to sell add-ons to existing customers. The bigger money turned out to be stopping new fiber internet customers from leaving.
+
+A subscription business (internet service plus add-ons like security and streaming, 7,043 real customers from a public dataset) wanted to grow revenue by selling more to its current customers. I built that plan, then checked whether it was the right goal.
+
+## What I found
+
+- **Selling add-ons is worth about $12K a year.** Fine to run in the product, but too small for a big campaign
+- **New fiber customers leaving costs about $611K a year, fifty times more.** First-year fiber customers with no contract are 16% of customers but 37% of lost revenue. 70% of them leave in their first year
+- **The usual fixes don't solve it.** A discount for a one-year contract costs more than it saves, and adding protection services only slightly reduces who leaves
+- **The cause isn't clear yet.** It could be price or service quality, and this data can't tell which
+
+![Where lost revenue comes from](charts/01_where_churned_revenue_comes_from.png)
+
+**How to read it:** each bar is a group's share of the revenue lost when customers cancel. The green bar, first-year fiber customers with no contract, holds 37% of it while making up only 16% of customers.
+
+![Cross-sell offers are small next to churn](charts/02_offers_are_small.png)
+
+## What I'd do
+
+1. Run add-on offers quietly in the product; don't build a campaign around them
+2. Make keeping new fiber customers the priority
+3. Find out why they leave (exit surveys, support tickets, outage logs, competitor prices) before choosing a fix, then test the fix on about 351 customers per group
+
+## Words used here
+
+- **Churn:** customers cancelling
+- **Cross-sell:** selling an existing customer an extra product
+- **Month-to-month:** no contract; the customer can leave any month
+
+<details>
+<summary><b>The full analysis: method, detail and how to run it</b> (for technical readers)</summary>
+
+## Tools and data
 
 Built with **DuckDB SQL** and **Python (scikit-learn)**.
 
@@ -23,10 +55,6 @@ The business sells internet service plus six optional add-ons: four "protection"
 **What would change the answer:** exit or survey data showing that new fiber customers leave over something an add-on or contract fixes, or a real churn effect from add-ons much larger than this observational data suggests.
 
 ## Charts
-
-![First-year fiber customers are 16% of the base but 37% of lost revenue](charts/01_where_churned_revenue_comes_from.png)
-
-![Keeping first-year fiber customers is worth 50 times the best upsell](charts/02_offers_are_small.png)
 
 ## Results
 
@@ -131,3 +159,5 @@ python scripts/make_charts.py
 ## Data source and licence
 
 Data: IBM Telco Customer Churn sample dataset, from [IBM/telco-customer-churn-on-icp4d](https://github.com/IBM/telco-customer-churn-on-icp4d) (Apache License 2.0). Code in this repository is MIT licensed.
+
+</details>
